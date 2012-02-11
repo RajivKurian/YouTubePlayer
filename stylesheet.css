@@ -71,7 +71,7 @@ body {
 }
 
 #songs {
-	padding-top: 10px;
+	margin-left: 5px;
 	font-size: 14px;
 	width: 700px;
 	border-collapse: collapse;
@@ -368,7 +368,7 @@ body {
   #songs {
     padding-top: 10px;
     font-size: 14px;
-    width: 500px;
+    width: 495px;
     overflow-y: auto;
   }
 
