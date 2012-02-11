@@ -5,9 +5,10 @@
       this.apiReady = 0;
       this.panelShowing = 0;
       this.vent = options.vent;
-      _.bindAll(this, 'youTubePlayerAPIReady');
+      _.bindAll(this, 'youTubePlayerAPIReady', 'playSong');
       this.videoTemplate = _.template($('#video_info_template').html());
       this.videoInfo = $('#video_info');
+      //Add youtube script
       options.vent.bind("YouTubePlayerAPIReady", this.youTubePlayerAPIReady);
       var tag = document.createElement('script');
       tag.src = "http://www.youtube.com/player_api";
@@ -36,10 +37,10 @@
           height: 480,
           videoId: url,
           events: {
-           'onReady': YouTubePlayer.playerReady,
-           'onPlaybackQualityChange': YouTubePlayer.playerReady,
-           'onStateChange': YouTubePlayer.stateChanged,
-           'onError': YouTubePlayer.errorz
+           'onReady': this.playerReady,
+           'onPlaybackQualityChange': this.playerReady,
+           'onStateChange': this.stateChanged,
+           'onError': this.errorz
          }
        });
         }
@@ -319,6 +320,8 @@
       this.arrowTop = -1;
       this.arrowTransitionSet = 0;
       this.arrow = $("#playlistSelected");
+      this.transform = Modernizr.prefixed("transform");
+      this.transition = Modernizr.prefixed("transition");
       options.vent.bind("startedPlayList", this.startedPlayList);
       options.vent.bind("playListStopped", this.playListStopped);
       options.vent.bind("videoEnded", this.videoEnded);
@@ -336,15 +339,15 @@
       this.currentlyPlaying = order;
       if(this.arrowShown === 0) {
         var newTop = 115 + (order-1)*24;
-        this.arrow.css("-webkit-transform"," translate(" + 0 + "px," + (newTop - this.arrowTop) + "px)");
+        this.arrow.css(this.transform," translate(" + 0 + "px," + (newTop - this.arrowTop) + "px)");
         this.arrowShown =1;
       } else {
         if(this.arrowTransitionSet === 0) {
-            this.arrow.css("-webkit-transition", "all 1.0s");
+            this.arrow.css(this.transition, "all 1.0s");
             this.arrowTransitionSet = 1;
         }
         var newTop = 115 + (order-1)*24;
-        this.arrow.css("-webkit-transform"," translate(" + 0  + "px," + (newTop - this.arrowTop) + "px)");
+        this.arrow.css(this.transform," translate(" + 0  + "px," + (newTop - this.arrowTop) + "px)");
       }
       this.vent.trigger("playNextSong", this.currentlyPlaying);
     },
@@ -353,8 +356,7 @@
       this.currentlyPlaying = -1;
       this.arrowShown = 0;
       this.arrowTransitionSet = 0;
-      this.arrow.css({"-webkit-transition": ""});
-      this.arrow.css({"-webkit-transform": ""});
+      this.arrow.removeAttr("style");
        // when something is searched reset all playlists
     },
 
