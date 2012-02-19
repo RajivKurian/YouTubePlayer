@@ -322,6 +322,7 @@
       this.arrow = $("#playlistSelected");
       this.transform = Modernizr.prefixed("transform");
       this.transition = Modernizr.prefixed("transition");
+      this.textBox = $('#newPlayListText');
       options.vent.bind("startedPlayList", this.startedPlayList);
       options.vent.bind("playListStopped", this.playListStopped);
       options.vent.bind("videoEnded", this.videoEnded);
@@ -330,7 +331,7 @@
 
     events: {
       'click #new_playlist': 'addNewPlayListTextBox',
-      'keypress #newPlayListText': 'addNewPlayList'
+      'keyup #newPlayListText': 'addNewPlayList'
     },
 
     videoEnded : function(song) {
@@ -379,7 +380,6 @@
         //add each playlist
           this.appendPlaylist(playlist);
       },this);
-
     },
 
     appendPlaylist: function (playlist) {
@@ -389,24 +389,27 @@
 
     addNewPlayListTextBox: function() {
       //show text box
-      $('#newPlayListText').show();
-      $('#newPlayListText').val('');
-      $('#newPlayListText').focus();
+      this.textBox.show();
+      this.textBox.val('');
+      this.textBox.focus();
     },
-    
+
     addNewPlayList: function(e){
-        if(e.keyCode==13){
-              //add new playlist to collection
-              $('#newPlayListText').hide();
-              var name = $('#newPlayListText').val();
-              var order = playlists.nextOrder();
-              playlists.create({name:name, order:order}); //create a new model in the collection  
-              //save the playlist to the collection
-              playlists.last().save();
-              
-              this.appendPlaylist(playlists.last());
-            }
-  
+      if (e.which == 27) {
+        this.textBox.hide();
+      }
+
+      if (e.keyCode === 13) {
+        //add new playlist to collection
+        this.textBox.hide();
+        var name = this.textBox.val();
+        var order = playlists.nextOrder();
+        //create a new model in the collection
+        playlists.create({name:name, order:order});
+       // save the playlist to the collection
+        playlists.last().save();
+       this.appendPlaylist(playlists.last());
+      }
     }
   });
 
