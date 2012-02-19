@@ -58,16 +58,17 @@ body {
 }
 
 #search_results{
-	position: fixed;
-	left:250px;
-	bottom: 0px;
-	top : 45px;
-	width: 700px;
-	background-color: #373737;
-	margin-left: 5px;
-	margin-top: 5px;
-	overflow: auto;
-	z-index: 2;
+  padding-bottom: 5px;
+  position: fixed;
+  left:250px;
+  bottom: 0px;
+  top : 45px;
+  width: 700px;
+  background-color: #373737;
+  margin-left: 5px;
+  margin-top: 5px;
+  overflow: auto;
+  z-index: 2;
 }
 
 #songs {

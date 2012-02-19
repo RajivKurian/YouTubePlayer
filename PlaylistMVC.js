@@ -312,7 +312,7 @@
     el: $('#left_nav'),
     initialize: function(options){
       //bind every function that uses this context
-      _.bindAll(this, 'render','addNewPlayList', 'startedPlayList', 'playListStopped', 'videoEnded');
+      _.bindAll(this, 'render','addNewPlayList', 'startedPlayList', 'playListStopped', 'videoEnded', 'showArrow');
       //this.collection.bind('add',this.appendPlayList,this); //collection add event binder
       this.vent = options.vent;
       this.currentlyPlaying = -1;
@@ -326,7 +326,11 @@
       options.vent.bind("playListStopped", this.playListStopped);
       options.vent.bind("videoEnded", this.videoEnded);
       this.render();
+    },
 
+    events: {
+      'click #new_playlist': 'addNewPlayListTextBox',
+      'keypress #newPlayListText': 'addNewPlayList'
     },
 
     videoEnded : function(song) {
@@ -336,7 +340,14 @@
     },
   
     startedPlayList : function(order) {
-      this.currentlyPlaying = order;
+      if(this.currentlyPlaying != order) {
+        this.showArrow(order);
+        this.currentlyPlaying = order;
+      }
+      this.vent.trigger("playNextSong", this.currentlyPlaying);
+    },
+
+    showArrow : function(order) {
       if(this.arrowShown === 0) {
         var newTop = 115 + (order-1)*24;
         this.arrow.css(this.transform," translate(" + 0 + "px," + (newTop - this.arrowTop) + "px)");
@@ -349,15 +360,18 @@
         var newTop = 115 + (order-1)*24;
         this.arrow.css(this.transform," translate(" + 0  + "px," + (newTop - this.arrowTop) + "px)");
       }
-      this.vent.trigger("playNextSong", this.currentlyPlaying);
     },
 
     playListStopped : function() {
+      // when something is searched reset all playlists
       this.currentlyPlaying = -1;
+      this.hideArrow();
+    },
+
+    hideArrow: function() {
       this.arrowShown = 0;
       this.arrowTransitionSet = 0;
       this.arrow.removeAttr("style");
-       // when something is searched reset all playlists
     },
 
     render: function(){
@@ -372,11 +386,7 @@
       var singlePlaylistView = new PlaylistView({model:playlist, vent : vent});
       $('#playlists').append(singlePlaylistView.render().el);
     },
-    
-    events: {
-      'click #new_playlist': 'addNewPlayListTextBox',
-      'keypress #newPlayListText': 'addNewPlayList'
-    },
+
     addNewPlayListTextBox: function() {
       //show text box
       $('#newPlayListText').show();
@@ -409,7 +419,7 @@
       $(this.el).data("song-model", this.model);
       this.template = _.template($('#search_result_template').html());
     },
-    
+
     render: function () {
       $(this.el).html(this.template(this.model.toJSON()));
       return this;
@@ -418,16 +428,17 @@
     events : {
       'click .thumbnail' : 'playSong'
     },
+
     add: function () {
       var variables = {'duration' : this.model.get('duration')};
       $(this.el).html(this.template(variables));
       $('#search_results').append($(this.el));
     },
-    
+
     helperFn: function () {
       return $("<div class='draggable ui-draggable-dragging'>"+this.model.get('title')+"</div>");
     },
-    
+
     playSong: function() {
       if(!YouTubePlayer.panelShowing) {
         YouTubePlayer.panelShowing = 1;
@@ -436,19 +447,19 @@
         YouTubePlayer.playSong(this.model);
       }
     }
-
   });
-  
+
   var SearchResultView = Backbone.View.extend( {
     initialize: function(options){
         $('#search_bar').val('');
         this.maxResults = 10;
         this.vent = options.vent;
     },
-    
+
     events: {
         'keypress #search_bar': 'searchQuery'
     },
+
     searchQuery: function(e){
       if(e.keyCode==13){
             var query = $('#search_bar').val();
@@ -456,6 +467,7 @@
             this.vent.trigger("playListStopped");
           }
     },
+
     fetchQuery : function(query) {
       //fetch youtube videos
       var url = "https://gdata.youtube.com/feeds/api/videos?q="+query+"&max-results="+this.maxResults+"&v=2&alt=jsonc&callback=?";
@@ -463,21 +475,17 @@
         this.populate(data);
       }.bind(this));
     },
-    
+
     populate: function(data){
-            //make song models
-            YouTubePlayer.panelShowing = 0;
-            $('#search_results').html('');
-            $('#playlist_view').hide();
-            $('#search_results').show();
-            /*$("#search_results").animate({
-                top: "50px",
-          }, 1500 );*/
-        $.each(data.data.items, function(index, song) { 
-              this.addEachSong(song);
-        }.bind(this));
+      YouTubePlayer.panelShowing = 0;
+      $('#search_results').html('');
+      $('#playlist_view').hide();
+      $('#search_results').show();
+      $.each(data.data.items, function(index, song) { 
+        this.addEachSong(song);
+      }.bind(this));
     },
-    
+
     addEachSong: function (item) {
       var duration = this.durationForSong(item.duration);
       var song = new Song;
@@ -489,22 +497,21 @@
       var songView = new SongSearchResultView({model:song});
       $('#search_results').append(songView.render().el);
     },
-    
+
     durationForSong: function(secs) {
       var hrs = Math.floor(secs/3600);
       var rem = secs % 3600;
       var min = Math.floor(rem/60);
       secs = rem % 60;
       var str = "";
-      if (hrs > 0 ){
+      if (hrs > 0 ) {
         str = hrs.toString() + ":";
       }
-      
       var secsStr = secs.toString();
-      if (secs < 10 ){
+      if (secs < 10 ) {
         secsStr = '0' + secsStr;
       }
-        str = str + min.toString() +":"+ secsStr;
+      str = str + min.toString() +":"+ secsStr;
       return str;
     }
   });
@@ -516,11 +523,11 @@
   var vent = _.extend({}, Backbone.Events);
 
   function appInit() {
-  window.YouTubePlayer = new YouTubePlayerView({vent: vent});
-  window.playlists = new PlaylistCollection;
-  playlists.fetch();
-  window.playListView = new AllPlaylistView({el:'#left_nav', vent: vent});
-  window.searchView = new SearchResultView({el:'body', vent: vent});
+    window.YouTubePlayer = new YouTubePlayerView({vent: vent});
+    window.playlists = new PlaylistCollection;
+    playlists.fetch();
+    window.playListView = new AllPlaylistView({el:'#left_nav', vent: vent});
+    window.searchView = new SearchResultView({el:'body', vent: vent});
   }
 
 $(document).ready(function() {
