@@ -111,10 +111,10 @@ function resize() {
      		var localKey = "playlist"+order;
             this.localStorage = new window.Store(localKey);
    		},
-   		 
-   		 
+
+	 
 		nextOrder: function() {
-				if (this.length == 0) return 1;
+				if (this.length === 0) return 1;
       			return this.last().get('order') + 1;
 		}
     
